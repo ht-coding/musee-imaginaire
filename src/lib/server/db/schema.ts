@@ -18,10 +18,10 @@ export const session = pgTable('session', {
 export const artworks = pgTable(
 	'artworks',
 	{
-		collectionId: text('collection_id'),
-		artworkId: integer('artwork_id'),
+		collectionId: text('collection_id').notNull(),
+		artworkId: integer('artwork_id').notNull(),
 		imageURL: text('image_url'),
-		itemURL: text('item_url'),
+		artworkURL: text('artwork_url'),
 		accessionYear: integer('accession_year'),
 		creditLine: text('credit_line'),
 		department: text('department'),
@@ -40,6 +40,6 @@ export type Session = typeof session.$inferSelect;
 
 export type User = typeof user.$inferSelect;
 
-export type Artworks = typeof artworks.$inferSelect;
+export type Artwork = typeof artworks.$inferSelect;
 
 export type ApiRefreshLog = typeof apiRefreshLog.$inferSelect;
