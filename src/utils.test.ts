@@ -22,7 +22,6 @@ describe('fetchHarvardData()', () => {
 	test('The objects should contain the necessary keys', async () => {
 		const response = await fetchHarvardData(HARVARD_API_KEY, 5);
 		response.forEach((record) => {
-			console.log(record);
 			expect(record).toMatchObject({
 				id: expect.any(Number),
 				primaryimageurl: expect.any(String),
@@ -38,4 +37,43 @@ describe('fetchHarvardData()', () => {
 	});
 });
 
-describe('parseHarvardData()', () => {});
+describe('parseHarvardData()', () => {
+	test('It returns an array', async () => {
+		const response = await fetchHarvardData(HARVARD_API_KEY, 1);
+		const parsedData = await parseHarvardData(response);
+		expect(Array.isArray(parsedData)).toBe(true);
+	});
+	test('The array should be of the expected length', async () => {
+		const response = await fetchHarvardData(HARVARD_API_KEY, 5);
+		const parsedData = await parseHarvardData(response);
+		expect(parsedData.length).toBe(5);
+	});
+	test('The array should only contain objects', async () => {
+		const response = await fetchHarvardData(HARVARD_API_KEY, 5);
+		const parsedData = await parseHarvardData(response);
+		parsedData.forEach((record) => {
+			expect(typeof record).toBe('object');
+			expect(record).not.toBe(null);
+			expect(Array.isArray(record)).toBe(false);
+		});
+	});
+	test('The objects should contain the necessary keys', async () => {
+		const response = await fetchHarvardData(HARVARD_API_KEY, 5);
+		const parsedData = await parseHarvardData(response);
+		parsedData.forEach((record) => {
+			expect(record).toMatchObject({
+				artworkId: expect.any(Number),
+				collection: 'Harvard Art Museums',
+				collectionId: 'Harvard',
+				imageURL: expect.any(String),
+				artworkURL: expect.any(String),
+				accessionYear: expect.any(Number),
+				creditLine: expect.any(String),
+				department: expect.any(String),
+				title: expect.any(String),
+				medium: expect.any(String),
+				description: expect.any(String)
+			});
+		});
+	});
+});
