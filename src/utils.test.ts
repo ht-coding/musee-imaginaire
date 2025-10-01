@@ -1,5 +1,5 @@
 import { HARVARD_API_KEY } from '$env/static/private';
-import { fetchHarvardData, parseHarvardData } from '$lib/server/utils';
+import { fetchHarvardData, fetchMetData, parseHarvardData, parseMetData } from '$lib/server/utils';
 import { describe, test, expect } from 'vitest';
 
 describe('fetchHarvardData()', () => {
@@ -65,6 +65,81 @@ describe('parseHarvardData()', () => {
 				artworkId: expect.any(Number),
 				collection: 'Harvard Art Museums',
 				collectionId: 'Harvard',
+				imageURL: expect.any(String),
+				artworkURL: expect.any(String),
+				accessionYear: expect.any(Number),
+				creditLine: expect.any(String),
+				department: expect.any(String),
+				title: expect.any(String),
+				medium: expect.any(String),
+				description: expect.any(String)
+			});
+		});
+	});
+});
+
+describe('fetchMetData()', () => {
+	test('It returns an array', async () => {
+		const response = await fetchMetData(1);
+		expect(Array.isArray(response)).toBe(true);
+	});
+	test('The array should be of the expected length', async () => {
+		const response = await fetchMetData(5);
+		expect(response.length).toBe(5);
+	});
+	test('The array should only contain objects', async () => {
+		const response = await fetchMetData(5);
+		response.forEach((record) => {
+			expect(typeof record).toBe('object');
+			expect(record).not.toBe(null);
+			expect(Array.isArray(record)).toBe(false);
+		});
+	});
+	test('The objects should contain the necessary keys', async () => {
+		const response = await fetchMetData(5);
+		response.forEach((record) => {
+			expect(record).toMatchObject({
+				id: expect.any(Number),
+				primaryImage: expect.any(String),
+				title: expect.any(String),
+				objectURL: expect.any(String),
+				accessionYear: expect.any(String),
+				creditLine: expect.any(String),
+				department: expect.any(String),
+				medium: expect.any(String)
+			});
+		});
+	});
+});
+
+describe('parseMetData()', () => {
+	test('It returns an array', async () => {
+		const response = await fetchMetData(1);
+		const parsedData = await parseMetData(response);
+		expect(Array.isArray(parsedData)).toBe(true);
+	});
+	test('The array should be of the expected length', async () => {
+		const response = await fetchMetData(5);
+		const parsedData = await parseMetData(response);
+		expect(parsedData.length).toBe(5);
+	});
+	test('The array should only contain objects', async () => {
+		const response = await fetchMetData(5);
+		const parsedData = await parseMetData(response);
+		parsedData.forEach((record) => {
+			expect(typeof record).toBe('object');
+			expect(record).not.toBe(null);
+			expect(Array.isArray(record)).toBe(false);
+		});
+	});
+	test('The objects should contain the necessary keys', async () => {
+		const response = await fetchMetData(5);
+		const parsedData = await parseMetData(response);
+		parsedData.forEach((record) => {
+			expect(record).toMatchObject({
+				artworkId: expect.any(Number),
+				collectionId: 'Met',
+				collection: 'The Metropolitan Museum of Art',
 				imageURL: expect.any(String),
 				artworkURL: expect.any(String),
 				accessionYear: expect.any(Number),
