@@ -20,6 +20,7 @@ export const artworks = pgTable(
 	{
 		collectionId: text('collection_id').notNull(),
 		artworkId: integer('artwork_id').notNull(),
+		collection: text('collection'),
 		imageURL: text('image_url'),
 		artworkURL: text('artwork_url'),
 		accessionYear: integer('accession_year'),
@@ -33,6 +34,7 @@ export const artworks = pgTable(
 );
 
 export const apiRefreshLog = pgTable('api_refresh_log', {
+	id: integer('id').primaryKey().notNull(),
 	lastRefresh: timestamp('last_refresh', { withTimezone: true }).notNull()
 });
 
