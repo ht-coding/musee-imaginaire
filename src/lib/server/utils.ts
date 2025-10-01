@@ -18,5 +18,7 @@ export async function fetchHarvardData(
 	const harvardApiUrl = `https://api.harvardartmuseums.org/object?apikey=${apiKey}&size=${numberOfRecords}&hasimage=1&q=*&classification=Paintings`;
 	const harvardResponse = await fetch(harvardApiUrl);
 	const { records } = await harvardResponse.json();
-	return records;
+	return records.filter(
+		(record: HarvardRecord) => record.imagepermissionlevel === 0 && record.primaryimageurl
+	);
 }
