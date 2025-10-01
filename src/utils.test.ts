@@ -7,6 +7,10 @@ describe('fetchHarvardData()', () => {
 		const response = await fetchHarvardData(HARVARD_API_KEY, 1);
 		expect(Array.isArray(response)).toBe(true);
 	});
+	test('The array should be of the expected length', async () => {
+		const response = await fetchHarvardData(HARVARD_API_KEY, 5);
+		expect(response.length).toBe(5);
+	});
 	test('The array should only contain objects', async () => {
 		const response = await fetchHarvardData(HARVARD_API_KEY, 5);
 		response.forEach((record) => {
