@@ -1,4 +1,6 @@
 import type { Artwork } from '$lib/server/db/schema';
+import { db } from '$lib/server/db';
+import * as table from '$lib/server/db/schema';
 
 type HarvardRecord = {
 	id: number;
@@ -105,4 +107,16 @@ export async function parseMetData(records: MetRecordWithId[]): Promise<Artwork[
 		medium: record.medium,
 		description: 'Visit the Met website to learn more.'
 	}));
+}
+
+export async function updateArtworks(collection: Artwork[]) {
+	return collection.forEach(async (artwork) =>
+		db
+			.insert(table.artworks)
+			.values(artwork)
+			.onConflictDoUpdate({
+				target: [table.artworks.artworkId, table.artworks.collectionId],
+				set: artwork
+			})
+	);
 }
