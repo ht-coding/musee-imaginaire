@@ -38,3 +38,19 @@ export async function fetchHarvardData(
 
 	return fetchHarvardData(apiKey, numberOfRecords, page + 1, finalRecords);
 }
+
+export async function parseHarvardData(records: HarvardRecord[]): Promise<Artwork[]> {
+	return records.map((record) => ({
+		artworkId: record.id,
+		collection: 'Harvard Art Museums',
+		collectionId: 'Harvard',
+		imageURL: record.primaryimageurl,
+		artworkURL: record.url,
+		accessionYear: record.accessionyear,
+		creditLine: record.creditline ?? 'Unknown',
+		department: record.division,
+		title: record.title,
+		medium: record.medium,
+		description: record.description ?? 'Visit the Harvard Art Museums website for more information'
+	}));
+}
