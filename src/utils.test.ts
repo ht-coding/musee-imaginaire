@@ -1,8 +1,8 @@
 import { HARVARD_API_KEY } from '$env/static/private';
-import { fetchHarvardData } from '$lib/server/utils';
+import { fetchHarvardData, parseHarvardData } from '$lib/server/utils';
 import { describe, test, expect } from 'vitest';
 
-describe('Connect to Harvard Art Museums API and fetch data', () => {
+describe('fetchHarvardData()', () => {
 	test('It returns an array', async () => {
 		const response = await fetchHarvardData(HARVARD_API_KEY, 1);
 		expect(Array.isArray(response)).toBe(true);
@@ -33,3 +33,5 @@ describe('Connect to Harvard Art Museums API and fetch data', () => {
 		});
 	});
 });
+
+describe('parseHarvardData()', () => {});
