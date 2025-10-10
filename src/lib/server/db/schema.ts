@@ -21,6 +21,7 @@ export const artworks = pgTable(
 		collectionId: text('collection_id').notNull(),
 		artworkId: integer('artwork_id').notNull(),
 		collection: text('collection'),
+		thumbnailURL: text('thumbnail_url'),
 		imageURL: text('image_url'),
 		artworkURL: text('artwork_url'),
 		accessionYear: integer('accession_year'),
