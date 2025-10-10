@@ -29,15 +29,17 @@
 		<div class="mt-5 columns-6 gap-8 px-5">
 			{#each artworks.slice(0, 24) as art}
 				<!--TODO: Pagination, figcaption styling and content, image loading placeholders -->
-				<figure class="mb-5 break-inside-avoid">
-					<img
-						src={art.thumbnailURL}
-						alt=""
-						class="shadow-sm/50"
-						style="background:#75553e;border-color: #75553e;border-style: inset inset outset outset;border-width: 0.75em;"
-					/>
-					<figcaption class="mt-auto">{art.title}</figcaption>
-				</figure>
+				<a href="/artwork/{art.collectionId}-{art.artworkId}" class="transition hover:opacity-90">
+					<figure class="mb-5 break-inside-avoid">
+						<img
+							src={art.thumbnailURL}
+							alt=""
+							class="shadow-sm/50"
+							style="background:#75553e;border-color: #75553e;border-style: inset inset outset outset;border-width: 0.75em;"
+						/>
+						<figcaption class="mt-auto">{art.title}</figcaption>
+					</figure>
+				</a>
 			{/each}
 		</div>
 	{:catch error}
