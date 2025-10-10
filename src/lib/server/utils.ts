@@ -1,6 +1,13 @@
 import type { Artwork } from '$lib/server/db/schema';
 import { db } from '$lib/server/db';
 import * as table from '$lib/server/db/schema';
+import { HARVARD_API_KEY } from '$env/static/private';
+
+function delay(ms: number) {
+	return new Promise((resolve) => {
+		setTimeout(resolve, ms);
+	});
+}
 
 type HarvardRecord = {
 	id: number;
@@ -23,6 +30,10 @@ export async function fetchHarvardData(
 ): Promise<HarvardRecord[]> {
 	const harvardApiUrl = `https://api.harvardartmuseums.org/object?apikey=${apiKey}&size=${numberOfRecords}&hasimage=1&q=*&classification=Paintings&page=${page}`;
 	const response = await fetch(harvardApiUrl);
+	if (!response.ok) {
+		const text = await response.text();
+		throw new Error(`Fetch failed: Harvard, ${response.status} ${response.statusText}\n${text}`);
+	}
 	const { records } = await response.json();
 	if (!records || records.length === 0) {
 		return accumulatedRecords;
@@ -35,6 +46,8 @@ export async function fetchHarvardData(
 	const finalRecords = accumulatedRecords.concat(filteredRecords);
 
 	if (finalRecords.length >= numberOfRecords) {
+		await delay(35);
+
 		return finalRecords.slice(0, numberOfRecords);
 	}
 
@@ -48,6 +61,7 @@ export async function parseHarvardData(records: HarvardRecord[]): Promise<Artwor
 		collectionId: 'Harvard',
 		imageURL: record.primaryimageurl,
 		artworkURL: record.url,
+		thumbnailURL: record.primaryimageurl + '?height=400&width=600',
 		accessionYear: record.accessionyear,
 		creditLine: record.creditline ?? 'Unknown',
 		department: record.division,
@@ -57,14 +71,10 @@ export async function parseHarvardData(records: HarvardRecord[]): Promise<Artwor
 	}));
 }
 
-function delay(ms: number) {
-	return new Promise((resolve) => {
-		setTimeout(resolve, ms);
-	});
-}
-
 type MetRecord = {
+	isPublicDomain: boolean;
 	primaryImage: string;
+	primaryImageSmall: string;
 	objectURL: string;
 	accessionYear: string;
 	creditLine: string;
@@ -76,19 +86,31 @@ type MetRecordWithId = MetRecord & { id: number };
 
 export async function fetchMetData(numberOfRecords: number): Promise<MetRecordWithId[]> {
 	const metApiUrl = 'https://collectionapi.metmuseum.org/public/collection/v1/objects';
-	const metResponse = await fetch(
-		`${metApiUrl}?departmentIds=11&hasImages=true&isPublicDomain=true`
-	);
-	const { objectIDs } = await metResponse.json();
+	const response = await fetch(`${metApiUrl}?departmentIds=11`);
+	if (!response.ok) {
+		const text = await response.text();
+		throw new Error(
+			`Fetch failed: Metropolitan Museum of Art, /objects, ${response.status} ${response.statusText}\n${text}`
+		);
+	}
+	const { objectIDs } = await response.json();
 
 	const results = [];
-	for (const id of objectIDs.slice(0, numberOfRecords)) {
+	for (const id of objectIDs) {
+		if (results.length === numberOfRecords) break;
 		await delay(35);
-
 		const response = await fetch(`${metApiUrl}/${id}`);
+		if (!response.ok) {
+			const text = await response.text();
+			throw new Error(
+				`Fetch failed: Metropolitan Museum of Art, /objects/${id}, ${response.status} ${response.statusText}\n${text}`
+			);
+		}
 		const record: MetRecord = await response.json();
-		const recordWithId: MetRecordWithId = { id, ...record };
-		results.push(recordWithId);
+		if (record.isPublicDomain && record.primaryImage) {
+			const recordWithId: MetRecordWithId = { id, ...record };
+			results.push(recordWithId);
+		}
 	}
 	return results;
 }
@@ -99,6 +121,7 @@ export async function parseMetData(records: MetRecordWithId[]): Promise<Artwork[
 		collectionId: 'Met',
 		collection: 'The Metropolitan Museum of Art',
 		imageURL: record.primaryImage,
+		thumbnailURL: record.primaryImageSmall,
 		artworkURL: record.objectURL,
 		accessionYear: parseInt(record.accessionYear),
 		creditLine: record.creditLine,
@@ -119,4 +142,36 @@ export async function updateArtworks(collection: Artwork[]) {
 				set: artwork
 			})
 	);
+}
+
+export async function isApiStale(): Promise<boolean> {
+	const [apiRefreshLog] = await db.select().from(table.apiRefreshLog);
+
+	if (!apiRefreshLog) return true;
+
+	const lastRefresh = apiRefreshLog.lastRefresh;
+	const lastMonth = new Date();
+	lastMonth.setMonth(lastMonth.getMonth() - 1);
+
+	return lastRefresh < lastMonth;
+}
+
+export async function refreshApi() {
+	const harvardRawData = await fetchHarvardData(HARVARD_API_KEY, 50);
+	const harvardParsedData = await parseHarvardData(harvardRawData);
+
+	const metRawData = await fetchMetData(50);
+	const metParsedData = await parseMetData(metRawData);
+
+	updateArtworks([...harvardParsedData, ...metParsedData]);
+	await db
+		.insert(table.apiRefreshLog)
+		.values({
+			id: 1,
+			lastRefresh: new Date()
+		})
+		.onConflictDoUpdate({
+			target: table.apiRefreshLog.id,
+			set: { lastRefresh: new Date() }
+		});
 }
