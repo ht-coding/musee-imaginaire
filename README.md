@@ -1,3 +1,7 @@
+[![Netlify Status](https://api.netlify.com/api/v1/badges/6d020aba-ab01-4d2a-b662-a4c550b303ad/deploy-status)](https://app.netlify.com/projects/museeimaginaire/deploys)
+
+A live demo of the project can be viewed [here](https://museeimaginaire.netlify.app).
+
 1. clone the repo
 2. install the dependencies with `npm run i`
 3. create a .env file and add the url to your postgres database. the .env.example file shows you what it should look like
