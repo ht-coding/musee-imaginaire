@@ -1,0 +1,13 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1760113149184,
+      "tag": "0000_add-composite-fk-to-exhibit-artworks",
+      "breakpoints": true
+    }
+  ]
+}

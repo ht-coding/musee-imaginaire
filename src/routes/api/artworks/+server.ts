@@ -11,6 +11,6 @@ export async function GET() {
 		await refreshApi();
 	}
 
-	const artworks = await db.select().from(table.artworks);
+	const artworks = await db.select().from(table.artwork);
 	return json(artworks);
 }

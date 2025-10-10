@@ -1,5 +1,5 @@
 import { db } from '$lib/server/db';
-import { artworks } from '$lib/server/db/schema';
+import { artwork } from '$lib/server/db/schema';
 import { eq, and } from 'drizzle-orm';
 import { json, error } from '@sveltejs/kit';
 
@@ -36,8 +36,8 @@ export async function GET({ params }) {
 
 	const result = await db
 		.select()
-		.from(artworks)
-		.where(and(eq(artworks.collectionId, collectionId), eq(artworks.artworkId, artworkId)))
+		.from(artwork)
+		.where(and(eq(artwork.collectionId, collectionId), eq(artwork.artworkId, artworkId)))
 		.limit(1);
 
 	if (!result.length) {

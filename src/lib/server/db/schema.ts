@@ -15,8 +15,8 @@ export const session = pgTable('session', {
 	expiresAt: timestamp('expires_at', { withTimezone: true, mode: 'date' }).notNull()
 });
 
-export const artworks = pgTable(
-	'artworks',
+export const artwork = pgTable(
+	'artwork',
 	{
 		collectionId: text('collection_id').notNull(),
 		artworkId: integer('artwork_id').notNull(),
@@ -34,15 +34,41 @@ export const artworks = pgTable(
 	(table) => [primaryKey({ columns: [table.collectionId, table.artworkId] })]
 );
 
+export const exhibit = pgTable('exhibit', {
+	id: serial('id').primaryKey(),
+	userId: text('user_id')
+		.notNull()
+		.references(() => user.id, { onDelete: 'cascade' }),
+	name: text('name').notNull(),
+	description: text('description'),
+	createdAt: timestamp('created_at', { mode: 'date' }).defaultNow()
+});
+
+export const exhibitToArtworks = pgTable(
+	'exhibit_artworks',
+	{
+		exhibitId: integer('exhibit_id')
+			.notNull()
+			.references(() => exhibit.id, { onDelete: 'cascade' }),
+
+		artworkCollectionId: text('artwork_collection_id').notNull(),
+		artworkId: integer('artwork_id').notNull(),
+
+		addedAt: timestamp('added_at', { mode: 'date' }).defaultNow()
+	},
+	(table) => [
+		primaryKey({ columns: [table.exhibitId, table.artworkCollectionId, table.artworkId] })
+	]
+);
+
 export const apiRefreshLog = pgTable('api_refresh_log', {
 	id: integer('id').primaryKey().notNull(),
 	lastRefresh: timestamp('last_refresh', { withTimezone: true }).notNull()
 });
 
 export type Session = typeof session.$inferSelect;
-
 export type User = typeof user.$inferSelect;
-
-export type Artwork = typeof artworks.$inferSelect;
-
+export type Artwork = typeof artwork.$inferSelect;
+export type Exhibit = typeof exhibit.$inferSelect;
 export type ApiRefreshLog = typeof apiRefreshLog.$inferSelect;
+export type ExhibitToArtwork = typeof exhibitToArtworks.$inferSelect;
