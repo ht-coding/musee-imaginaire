@@ -14,6 +14,17 @@ type HarvardRecord = {
 	medium: string;
 	imagepermissionlevel: number;
 	description?: string;
+	images: [{ description: string; width: number; height: number }];
+	people: {
+		role: string;
+		gender: string;
+		culture: string;
+		displayname: string;
+		displaydate: string;
+	}[];
+};
+type ParsedHarvardRecord = HarvardRecord & {
+	origin: 'harvard';
 };
 type MetRecord = {
 	isPublicDomain: boolean;
@@ -25,15 +36,22 @@ type MetRecord = {
 	department: string;
 	title: string;
 	medium: string;
+	tags: [{ term: string }];
+	measurements: [{ elementMeasurements: { Height: number; Width: number } }];
+	artistDisplayName: string;
+	artistNationality: string;
+	artistBeginDate: number;
+	artistEndDate: number;
+	artistGender: string;
 };
-type MetRecordWithId = MetRecord & { id: number };
+type ParsedMetRecord = MetRecord & { origin: 'met'; id: number };
 
 export async function fetchHarvardData(
 	apiKey: string,
 	numberOfRecords: number,
 	page: number = 1,
-	accumulatedRecords: HarvardRecord[] = []
-): Promise<HarvardRecord[]> {
+	accumulatedRecords: ParsedHarvardRecord[] = []
+): Promise<ParsedHarvardRecord[]> {
 	const harvardApiUrl = `https://api.harvardartmuseums.org/object?apikey=${apiKey}&size=${numberOfRecords}&hasimage=1&q=*&classification=Paintings&page=${page}`;
 	const response = await fetch(harvardApiUrl);
 	if (!response.ok) {
@@ -45,9 +63,15 @@ export async function fetchHarvardData(
 		return accumulatedRecords;
 	}
 
-	const filteredRecords = records.filter(
-		(record: HarvardRecord) => record.imagepermissionlevel === 0 && record.primaryimageurl
-	);
+	const filteredRecords: ParsedHarvardRecord[] = records
+		.filter(
+			(record: HarvardRecord) =>
+				record.imagepermissionlevel === 0 &&
+				record.primaryimageurl &&
+				Array.isArray(record.people) &&
+				record.people.length > 0
+		)
+		.map((record: HarvardRecord) => ({ ...record, origin: 'harvard' }));
 
 	const finalRecords = accumulatedRecords.concat(filteredRecords);
 
@@ -60,8 +84,8 @@ export async function fetchHarvardData(
 	return fetchHarvardData(apiKey, numberOfRecords, page + 1, finalRecords);
 }
 
-export async function parseHarvardData(records: HarvardRecord[]): Promise<Artwork[]> {
-	return records.map((record) => ({
+export function harvardRecordToArtwork(record: HarvardRecord): Artwork {
+	return {
 		artworkId: record.id,
 		collection: 'Harvard Art Museums',
 		collectionId: 'Harvard',
@@ -73,13 +97,16 @@ export async function parseHarvardData(records: HarvardRecord[]): Promise<Artwor
 		department: record.division,
 		title: record.title,
 		medium: record.medium,
-		description: record.description ?? 'Visit the Harvard Art Museums website for more information'
-	}));
+		description: record.description ?? 'Visit the Harvard Art Museums website for more information',
+		alt: record.images[0].description ?? '',
+		height: record.images[0].height,
+		width: record.images[0].width
+	};
 }
 
-export async function fetchMetData(numberOfRecords: number): Promise<MetRecordWithId[]> {
-	const metApiUrl = 'https://collectionapi.metmuseum.org/public/collection/v1/objects';
-	const response = await fetch(`${metApiUrl}?departmentIds=11`);
+export async function fetchMetData(numberOfRecords: number): Promise<ParsedMetRecord[]> {
+	const baseUrl = 'https://collectionapi.metmuseum.org/public/collection/v1/objects';
+	const response = await fetch(`${baseUrl}?departmentIds=11`);
 	if (!response.ok) {
 		const text = await response.text();
 		throw new Error(
@@ -88,28 +115,32 @@ export async function fetchMetData(numberOfRecords: number): Promise<MetRecordWi
 	}
 	const { objectIDs } = await response.json();
 
-	const results = [];
+	const results: ParsedMetRecord[] = [];
 	for (const id of objectIDs) {
 		if (results.length === numberOfRecords) break;
+
 		await delay(35);
-		const response = await fetch(`${metApiUrl}/${id}`);
+
+		const response = await fetch(`${baseUrl}/${id}`);
+
 		if (!response.ok) {
 			const text = await response.text();
 			throw new Error(
 				`Fetch failed: Metropolitan Museum of Art, /objects/${id}, ${response.status} ${response.statusText}\n${text}`
 			);
 		}
+
 		const record: MetRecord = await response.json();
+
 		if (record.isPublicDomain && record.primaryImage) {
-			const recordWithId: MetRecordWithId = { id, ...record };
-			results.push(recordWithId);
+			results.push({ origin: 'met', id, ...record });
 		}
 	}
 	return results;
 }
 
-export async function parseMetData(records: MetRecordWithId[]): Promise<Artwork[]> {
-	return records.map((record) => ({
+export function metRecordToArtwork(record: ParsedMetRecord): Artwork {
+	return {
 		artworkId: record.id,
 		collectionId: 'Met',
 		collection: 'The Metropolitan Museum of Art',
@@ -121,21 +152,24 @@ export async function parseMetData(records: MetRecordWithId[]): Promise<Artwork[
 		department: record.department,
 		title: record.title,
 		medium: record.medium,
-		description: 'Visit the Met website to learn more.'
-	}));
+		description: 'Visit the Met website to learn more.',
+		alt: createAlt(record),
+		height: record.measurements[0].elementMeasurements.Height,
+		width: record.measurements[0].elementMeasurements.Width
+	};
 }
 
-export async function updateArtworks(collection: Artwork[]) {
-	return collection.forEach(async (artwork) =>
-		db
-			.insert(table.artworks)
-			.values(artwork)
-			.onConflictDoUpdate({
-				target: [table.artworks.artworkId, table.artworks.collectionId],
-				set: artwork
-			})
-	);
-}
+// export async function updateArtworks(collection: Artwork[]) {
+// 	return collection.forEach(async (artwork) =>
+// 		db
+// 			.insert(table.artworks)
+// 			.values(artwork)
+// 			.onConflictDoUpdate({
+// 				target: [table.artworks.artworkId, table.artworks.collectionId],
+// 				set: artwork
+// 			})
+// 	);
+// }
 
 export async function isApiStale(): Promise<boolean> {
 	const [apiRefreshLog] = await db.select().from(table.apiRefreshLog);
@@ -155,22 +189,26 @@ function delay(ms: number) {
 	});
 }
 
-export async function refreshApi() {
-	const harvardRawData = await fetchHarvardData(HARVARD_API_KEY, 50);
-	const harvardParsedData = await parseHarvardData(harvardRawData);
-
-	const metRawData = await fetchMetData(50);
-	const metParsedData = await parseMetData(metRawData);
-
-	updateArtworks([...harvardParsedData, ...metParsedData]);
-	await db
-		.insert(table.apiRefreshLog)
-		.values({
-			id: 1,
-			lastRefresh: new Date()
-		})
-		.onConflictDoUpdate({
-			target: table.apiRefreshLog.id,
-			set: { lastRefresh: new Date() }
-		});
+function createAlt(record: ParsedMetRecord): string {
+	return `${record.tags.map((tag) => tag.term).join(', ')}, ${record.medium}`;
 }
+
+// export async function refreshApi() {
+// 	const harvardRawData = await fetchHarvardData(HARVARD_API_KEY, 50);
+// 	const harvardParsedData = await parseHarvardData(harvardRawData);
+
+// 	const metRawData = await fetchMetData(50);
+// 	const metParsedData = await parseMetData(metRawData);
+
+// 	updateArtworks([...harvardParsedData, ...metParsedData]);
+// 	await db
+// 		.insert(table.apiRefreshLog)
+// 		.values({
+// 			id: 1,
+// 			lastRefresh: new Date()
+// 		})
+// 		.onConflictDoUpdate({
+// 			target: table.apiRefreshLog.id,
+// 			set: { lastRefresh: new Date() }
+// 		});
+// }
