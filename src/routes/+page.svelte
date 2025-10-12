@@ -37,7 +37,7 @@
 							class="h-full w-full shadow-sm/50"
 							style="aspect-ratio:{art.width}/{art.height};background:#eee;border-color: #75553e;border-style: inset inset outset outset;border-width: 0.75em;"
 						/>
-						<figcaption class="mt-auto">{art.title}::{art.width}/{art.height}</figcaption>
+						<figcaption class="mt-auto">{art.title}</figcaption>
 					</figure>
 				</a>
 			{/each}
