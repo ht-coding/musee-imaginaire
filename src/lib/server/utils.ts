@@ -3,12 +3,6 @@ import { db } from '$lib/server/db';
 import * as table from '$lib/server/db/schema';
 import { HARVARD_API_KEY } from '$env/static/private';
 
-function delay(ms: number) {
-	return new Promise((resolve) => {
-		setTimeout(resolve, ms);
-	});
-}
-
 type HarvardRecord = {
 	id: number;
 	primaryimageurl: string;
@@ -21,6 +15,18 @@ type HarvardRecord = {
 	imagepermissionlevel: number;
 	description?: string;
 };
+type MetRecord = {
+	isPublicDomain: boolean;
+	primaryImage: string;
+	primaryImageSmall: string;
+	objectURL: string;
+	accessionYear: string;
+	creditLine: string;
+	department: string;
+	title: string;
+	medium: string;
+};
+type MetRecordWithId = MetRecord & { id: number };
 
 export async function fetchHarvardData(
 	apiKey: string,
@@ -70,19 +76,6 @@ export async function parseHarvardData(records: HarvardRecord[]): Promise<Artwor
 		description: record.description ?? 'Visit the Harvard Art Museums website for more information'
 	}));
 }
-
-type MetRecord = {
-	isPublicDomain: boolean;
-	primaryImage: string;
-	primaryImageSmall: string;
-	objectURL: string;
-	accessionYear: string;
-	creditLine: string;
-	department: string;
-	title: string;
-	medium: string;
-};
-type MetRecordWithId = MetRecord & { id: number };
 
 export async function fetchMetData(numberOfRecords: number): Promise<MetRecordWithId[]> {
 	const metApiUrl = 'https://collectionapi.metmuseum.org/public/collection/v1/objects';
@@ -154,6 +147,12 @@ export async function isApiStale(): Promise<boolean> {
 	lastMonth.setMonth(lastMonth.getMonth() - 1);
 
 	return lastRefresh < lastMonth;
+}
+
+function delay(ms: number) {
+	return new Promise((resolve) => {
+		setTimeout(resolve, ms);
+	});
 }
 
 export async function refreshApi() {

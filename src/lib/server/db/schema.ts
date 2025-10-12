@@ -34,6 +34,27 @@ export const artwork = pgTable(
 	(table) => [primaryKey({ columns: [table.collectionId, table.artworkId] })]
 );
 
+export const artist = pgTable('artist', {
+	id: serial('id').primaryKey(),
+	name: text('name'),
+	culture: text('culture'),
+	years: text('years'),
+	gender: text('gender')
+});
+
+export const artistsToArtworks = pgTable(
+	'artists_artwork',
+	{
+		artistId: integer('artist_id')
+			.notNull()
+			.references(() => artist.id, { onDelete: 'cascade' }),
+
+		artworkCollectionId: text('artwork_collection_id').notNull(),
+		artworkId: integer('artwork_id').notNull()
+	},
+	(table) => [primaryKey({ columns: [table.artistId, table.artworkCollectionId, table.artworkId] })]
+);
+
 export const exhibit = pgTable('exhibit', {
 	id: serial('id').primaryKey(),
 	userId: text('user_id')
