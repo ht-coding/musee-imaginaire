@@ -1,4 +1,13 @@
-import { pgTable, serial, integer, text, timestamp, primaryKey } from 'drizzle-orm/pg-core';
+import {
+	unique,
+	pgTable,
+	serial,
+	integer,
+	text,
+	timestamp,
+	primaryKey,
+	doublePrecision
+} from 'drizzle-orm/pg-core';
 
 export const user = pgTable('user', {
 	id: text('id').primaryKey(),
@@ -29,18 +38,25 @@ export const artwork = pgTable(
 		department: text('department'),
 		title: text('title'),
 		medium: text('medium'),
-		description: text('description')
+		description: text('description'),
+		alt: text('alt'),
+		height: doublePrecision('height'),
+		width: doublePrecision('width')
 	},
 	(table) => [primaryKey({ columns: [table.collectionId, table.artworkId] })]
 );
 
-export const artist = pgTable('artist', {
-	id: serial('id').primaryKey(),
-	name: text('name'),
-	culture: text('culture'),
-	years: text('years'),
-	gender: text('gender')
-});
+export const artist = pgTable(
+	'artist',
+	{
+		id: serial('id').primaryKey(),
+		name: text('name'),
+		culture: text('culture'),
+		years: text('years'),
+		gender: text('gender')
+	},
+	(table) => [unique().on(table.name, table.culture)]
+);
 
 export const artistsToArtworks = pgTable(
 	'artists_artwork',
@@ -90,6 +106,8 @@ export const apiRefreshLog = pgTable('api_refresh_log', {
 export type Session = typeof session.$inferSelect;
 export type User = typeof user.$inferSelect;
 export type Artwork = typeof artwork.$inferSelect;
+export type Artist = typeof artist.$inferSelect;
 export type Exhibit = typeof exhibit.$inferSelect;
 export type ApiRefreshLog = typeof apiRefreshLog.$inferSelect;
-export type ExhibitToArtwork = typeof exhibitToArtworks.$inferSelect;
+export type ExhibitToArtwork = typeof exhibitToArtworks.$inferInsert;
+export type ArtistsToArtworks = typeof artistsToArtworks.$inferInsert;

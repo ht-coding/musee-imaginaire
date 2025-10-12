@@ -1,7 +1,8 @@
-import type { Artwork } from '$lib/server/db/schema';
+import type { Artwork, Artist } from '$lib/server/db/schema';
 import { db } from '$lib/server/db';
 import * as table from '$lib/server/db/schema';
 import { HARVARD_API_KEY } from '$env/static/private';
+import type { InferInsertModel } from 'drizzle-orm';
 
 type HarvardRecord = {
 	id: number;
@@ -45,6 +46,8 @@ type MetRecord = {
 	artistGender: string;
 };
 type ParsedMetRecord = MetRecord & { origin: 'met'; id: number };
+type ArtworkRecord = ParsedMetRecord | ParsedHarvardRecord;
+type NewArtist = InferInsertModel<typeof table.artist>;
 
 export async function fetchHarvardData(
 	apiKey: string,
@@ -159,17 +162,83 @@ export function metRecordToArtwork(record: ParsedMetRecord): Artwork {
 	};
 }
 
-// export async function updateArtworks(collection: Artwork[]) {
-// 	return collection.forEach(async (artwork) =>
-// 		db
-// 			.insert(table.artworks)
-// 			.values(artwork)
-// 			.onConflictDoUpdate({
-// 				target: [table.artworks.artworkId, table.artworks.collectionId],
-// 				set: artwork
-// 			})
-// 	);
-// }
+async function upsertArtworks(rawData: ArtworkRecord[]) {
+	const data = rawData.map((record) => {
+		if (record.origin === 'met') {
+			return { record, artworkData: metRecordToArtwork(record) };
+		} else {
+			return { record, artworkData: harvardRecordToArtwork(record) };
+		}
+	});
+	return Promise.all(
+		data.map(async (artwork) => {
+			try {
+				await db
+					.insert(table.artwork)
+					.values(artwork.artworkData)
+					.onConflictDoUpdate({
+						target: [table.artwork.artworkId, table.artwork.collectionId],
+						set: artwork.artworkData
+					});
+				await fetchOrInsertArtist(artwork.record);
+			} catch (error) {
+				console.error('Failed to update artwork:', artwork, error);
+			}
+		})
+	);
+}
+
+async function fetchOrInsertArtist(record: ArtworkRecord) {
+	if (record.origin === 'harvard') {
+		console.log(record.people);
+		const artists = record.people.filter((person) => person.role === 'Artist');
+		await Promise.all(
+			artists.map(async (artist) => {
+				console.log(`upserting artist ${artist.displayname}`);
+				const artistData = {
+					name: artist.displayname,
+					culture: artist.culture,
+					years: artist.displaydate,
+					gender: artist.gender
+				};
+				const artistId = await upsertArtist(artistData);
+				await linkArtistToArtwork(artistId, record.id, 'Harvard');
+			})
+		);
+	} else {
+		console.log(`upserting artist ${record.artistDisplayName}`);
+		const artistData = {
+			name: record.artistDisplayName,
+			culture: record.artistNationality,
+			years: `${record.artistBeginDate} - ${record.artistEndDate}`,
+			gender: record.artistGender
+		};
+		const artistId = await upsertArtist(artistData);
+		await linkArtistToArtwork(artistId, record.id, 'Met');
+	}
+}
+async function upsertArtist(artist: NewArtist) {
+	const results = await db
+		.insert(table.artist)
+		.values(artist)
+		.onConflictDoUpdate({
+			target: [table.artist.name, table.artist.culture],
+			set: artist
+		})
+		.returning({ id: table.artist.id });
+	return results[0]?.id;
+}
+async function linkArtistToArtwork(
+	artistId: number,
+	artworkId: number,
+	artworkCollectionId: string
+) {
+	return db.insert(table.artistsToArtworks).values({
+		artistId,
+		artworkId,
+		artworkCollectionId
+	});
+}
 
 export async function isApiStale(): Promise<boolean> {
 	const [apiRefreshLog] = await db.select().from(table.apiRefreshLog);
@@ -193,22 +262,19 @@ function createAlt(record: ParsedMetRecord): string {
 	return `${record.tags.map((tag) => tag.term).join(', ')}, ${record.medium}`;
 }
 
-// export async function refreshApi() {
-// 	const harvardRawData = await fetchHarvardData(HARVARD_API_KEY, 50);
-// 	const harvardParsedData = await parseHarvardData(harvardRawData);
+export async function refreshApi() {
+	const harvardData = await fetchHarvardData(HARVARD_API_KEY, 50);
+	const metData = await fetchMetData(50);
 
-// 	const metRawData = await fetchMetData(50);
-// 	const metParsedData = await parseMetData(metRawData);
-
-// 	updateArtworks([...harvardParsedData, ...metParsedData]);
-// 	await db
-// 		.insert(table.apiRefreshLog)
-// 		.values({
-// 			id: 1,
-// 			lastRefresh: new Date()
-// 		})
-// 		.onConflictDoUpdate({
-// 			target: table.apiRefreshLog.id,
-// 			set: { lastRefresh: new Date() }
-// 		});
-// }
+	await upsertArtworks([...harvardData, ...metData]);
+	await db
+		.insert(table.apiRefreshLog)
+		.values({
+			id: 1,
+			lastRefresh: new Date()
+		})
+		.onConflictDoUpdate({
+			target: table.apiRefreshLog.id,
+			set: { lastRefresh: new Date() }
+		});
+}
