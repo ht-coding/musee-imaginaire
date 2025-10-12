@@ -30,14 +30,14 @@
 			{#each artworks.slice(0, 24) as art}
 				<!--TODO: Pagination, figcaption styling and content, image loading placeholders -->
 				<a href="/artwork/{art.collectionId}-{art.artworkId}" class="transition hover:opacity-90">
-					<figure class="mb-5 break-inside-avoid">
+					<figure class="mb-5 break-inside-avoid aspect-[{art.width}/{art.height}]">
 						<img
 							src={art.thumbnailURL}
 							alt=""
-							class="shadow-sm/50"
-							style="background:#75553e;border-color: #75553e;border-style: inset inset outset outset;border-width: 0.75em;"
+							class="h-full w-full shadow-sm/50"
+							style="aspect-ratio:{art.width}/{art.height};background:#eee;border-color: #75553e;border-style: inset inset outset outset;border-width: 0.75em;"
 						/>
-						<figcaption class="mt-auto">{art.title}</figcaption>
+						<figcaption class="mt-auto">{art.title}::{art.width}/{art.height}</figcaption>
 					</figure>
 				</a>
 			{/each}
