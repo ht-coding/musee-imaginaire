@@ -1,5 +1,5 @@
 import { db } from '$lib/server/db';
-import { artwork } from '$lib/server/db/schema';
+import * as table from '$lib/server/db/schema';
 import { eq, and } from 'drizzle-orm';
 import { json, error } from '@sveltejs/kit';
 
@@ -34,17 +34,32 @@ export async function GET({ params }) {
 		);
 	}
 
-	const result = await db
+	const artwork = await db
 		.select()
-		.from(artwork)
-		.where(and(eq(artwork.collectionId, collectionId), eq(artwork.artworkId, artworkId)))
+		.from(table.artwork)
+		.where(
+			and(eq(table.artwork.collectionId, collectionId), eq(table.artwork.artworkId, artworkId))
+		)
 		.limit(1);
 
-	if (!result.length) {
+	if (!artwork.length) {
 		throw error(404, 'Artwork not found');
 	}
-
-	return json(result[0]);
+	const artists = await db
+		.select()
+		.from(table.artist)
+		.innerJoin(
+			table.artistsToArtworks,
+			and(
+				eq(table.artist.id, table.artistsToArtworks.artistId),
+				eq(table.artistsToArtworks.artworkId, artworkId),
+				eq(table.artistsToArtworks.artworkCollectionId, collectionId)
+			)
+		);
+	if (!artwork.length) {
+		throw error(404, 'Artist not found');
+	}
+	return json({ ...artwork[0], artists });
 }
 
 function capitalizeFirst(str: string) {

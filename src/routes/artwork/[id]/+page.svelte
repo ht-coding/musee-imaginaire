@@ -20,11 +20,13 @@
 				src={artwork.collectionId === 'Harvard'
 					? artwork.imageURL + '?height=900&width=1200'
 					: artwork.thumbnailURL}
-				alt=""
+				alt={artwork.alt}
 			/>
 			<figcaption class="text-sm text-gray-500">{artwork.creditLine}</figcaption>
 		</figure>
-		<h1 class="text-2xl">{artwork.title}</h1>
+		<h1 class="text-2xl">
+			{artwork.title} :: {artwork.artists[0].artist.name}
+		</h1>
 		<p>{artwork.description}</p>
 		<p>
 			<a href={artwork.artworkURL} class="text-blue-600 hover:underline"
