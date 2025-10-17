@@ -267,8 +267,8 @@ function createAlt(record: ParsedMetRecord): string {
 }
 
 export async function refreshApi() {
-	const harvardData = await fetchHarvardData(HARVARD_API_KEY, 2);
-	const metData = await fetchMetData(2);
+	const harvardData = await fetchHarvardData(HARVARD_API_KEY, 50);
+	const metData = await fetchMetData(50);
 
 	await upsertArtworks([...harvardData, ...metData]);
 	await db
