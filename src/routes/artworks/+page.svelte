@@ -4,7 +4,6 @@
 	import Input from '$lib/components/ui/input/input.svelte';
 	import IconMagnifyingGlassBold from 'phosphor-icons-svelte/IconMagnifyingGlassBold.svelte';
 	import { goto } from '$app/navigation';
-
 	const { data } = $props();
 
 	let refreshing = $state(data.refreshing);
@@ -18,13 +17,10 @@
 	let error = $state<string | null>(null);
 
 	$effect(() => {
-		const currentPageParam = data.url?.searchParams.get('page');
-		if (currentPageParam !== currentPage.toString()) {
-			const url = new URL(window.location.href);
-			url.searchParams.set('page', currentPage.toString());
+		const url = new URL(window.location.href);
+		url.searchParams.set('page', currentPage.toString());
 
-			goto(url.pathname + url.search, { replaceState: true, noScroll: true });
-		}
+		goto(url.pathname + url.search, { replaceState: true, noScroll: true });
 	});
 	$effect(() => {
 		if (refreshing) {
