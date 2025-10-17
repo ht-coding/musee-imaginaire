@@ -53,6 +53,6 @@ export const actions: Actions = {
 			artworkId,
 			artworkCollectionId
 		});
-		return redirect(303, '/artworks'); // TODO: update to the exhibit when exhibit pages exist
+		return redirect(303, '/exhibits/' + exhibitId);
 	}
 };

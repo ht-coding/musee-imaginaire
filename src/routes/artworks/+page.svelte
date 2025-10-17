@@ -47,14 +47,14 @@
 	});
 </script>
 
-<form class="flex w-full items-center justify-center space-x-2">
+<form class="flex w-full items-center justify-center space-x-2" style="display:none!important">
 	<!--TODO: implement fuzzy search for artworks -->
 	<Input type="text" placeholder="Search" class=" max-w-sm" />
 	<Button type="submit">
 		<IconMagnifyingGlassBold />
 	</Button>
 </form>
-<div>
+<div class="mx-auto mt-5">
 	<Button
 		disabled={currentPage === 1}
 		onclick={() => {

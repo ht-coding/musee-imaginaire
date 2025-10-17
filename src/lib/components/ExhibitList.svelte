@@ -10,9 +10,9 @@
 	</p>
 {:else}
 	{#each data.exhibits as exhibit}
-		<div>{exhibit.name}</div>
+		<a href={`/exhibits/${exhibit.id}`} class="underline">{exhibit.name}</a>
 	{/each}
 	{#if data.user}
-		<a href="/exhibits/new" class="underline">Create one?</a>
+		<a href="/exhibits/new" class="mt-3 underline">Create one?</a>
 	{/if}
 {/if}
