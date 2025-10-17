@@ -64,6 +64,13 @@ export const actions: Actions = {
 			return fail(400, { message: 'Invalid password' });
 		}
 
+		const results = await db.select().from(table.user).where(eq(table.user.username, username));
+
+		const existingUser = results.at(0);
+		if (existingUser) {
+			return fail(400, { message: 'This username is already taken!' });
+		}
+
 		const userId = generateUserId();
 		const passwordHash = await hash(password, {
 			// recommended minimum parameters
