@@ -190,11 +190,9 @@ async function upsertArtworks(rawData: ArtworkRecord[]) {
 
 async function fetchOrInsertArtist(record: ArtworkRecord) {
 	if (record.origin === 'harvard') {
-		console.log(record.people);
 		const artists = record.people.filter((person) => person.role === 'Artist');
 		await Promise.all(
 			artists.map(async (artist) => {
-				console.log(`upserting artist ${artist.displayname}`);
 				const artistData = {
 					name: artist.displayname,
 					culture: artist.culture,
@@ -206,7 +204,6 @@ async function fetchOrInsertArtist(record: ArtworkRecord) {
 			})
 		);
 	} else {
-		console.log(`upserting artist ${record.artistDisplayName}`);
 		const artistData = {
 			name: record.artistDisplayName,
 			culture: record.artistNationality,
@@ -259,7 +256,11 @@ function delay(ms: number) {
 }
 
 function createAlt(record: ParsedMetRecord): string {
-	return `${record.tags.map((tag) => tag.term).join(', ')}, ${record.medium}`;
+	const tagsString =
+		Array.isArray(record.tags) && record.tags.length
+			? record.tags.map((tag) => tag.term).join(', ') + ','
+			: '';
+	return `${tagsString}${record.medium}`;
 }
 
 export async function refreshApi() {
