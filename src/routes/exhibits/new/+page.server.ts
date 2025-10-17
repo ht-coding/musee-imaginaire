@@ -15,14 +15,11 @@ export const actions = {
 			return fail(400, { error: 'Name is required' });
 		}
 		try {
-			const [newExhibit] = await db
-				.insert(table.exhibit)
-				.values({
-					userId: locals.user.id,
-					name,
-					description: typeof description === 'string' ? description : null
-				})
-				.returning({ id: table.exhibit.id });
+			await db.insert(table.exhibit).values({
+				userId: locals.user.id,
+				name,
+				description: typeof description === 'string' ? description : null
+			});
 
 			return { success: true };
 		} catch (error) {
