@@ -4,23 +4,32 @@ import { json } from '@sveltejs/kit';
 import { and, eq } from 'drizzle-orm';
 
 export async function GET() {
-	const artworks = await db.select().from(table.artwork);
-	const artworksWithArtists = await Promise.all(
-		artworks.map(async (artwork) => {
-			const artistsResults = await db
-				.select()
-				.from(table.artist)
-				.innerJoin(
-					table.artistsToArtworks,
-					and(
-						eq(table.artist.id, table.artistsToArtworks.artistId),
-						eq(table.artistsToArtworks.artworkId, artwork.artworkId),
-						eq(table.artistsToArtworks.artworkCollectionId, artwork.collectionId)
-					)
-				);
-			const artists = artistsResults.map((row) => row.artist);
-			return { ...artwork, artists };
-		})
-	);
-	return json(artworksWithArtists);
+	const joined = await db
+		.select()
+		.from(table.artwork)
+		.leftJoin(
+			table.artistsToArtworks,
+			and(
+				eq(table.artwork.artworkId, table.artistsToArtworks.artworkId),
+				eq(table.artwork.collectionId, table.artistsToArtworks.artworkCollectionId)
+			)
+		)
+		.leftJoin(table.artist, eq(table.artist.id, table.artistsToArtworks.artistId));
+
+	const artworkMap = new Map();
+
+	for (const row of joined) {
+		const artwork = row.artwork;
+		const artist = row.artist;
+
+		const key = `${artwork.collectionId}-${artwork.artworkId}`;
+		if (!artworkMap.has(key)) {
+			artworkMap.set(key, { ...artwork, artists: [] });
+		}
+		if (artist) {
+			artworkMap.get(key).artists.push(artist);
+		}
+	}
+
+	return json(Array.from(artworkMap.values()));
 }
