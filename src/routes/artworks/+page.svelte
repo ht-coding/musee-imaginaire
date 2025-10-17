@@ -1,16 +1,31 @@
 <script lang="ts">
+	import Gallery from '$lib/components/Gallery.svelte';
 	import { Button } from '$lib/components/ui/button';
 	import Input from '$lib/components/ui/input/input.svelte';
 	import IconMagnifyingGlassBold from 'phosphor-icons-svelte/IconMagnifyingGlassBold.svelte';
-	import MiniMasonry from 'minimasonry';
-	import Artwork from '$lib/components/Artwork.svelte';
+	import { goto } from '$app/navigation';
 
 	const { data } = $props();
 
 	let refreshing = $state(data.refreshing);
+	let currentPage = $state(data.page || 1);
+	let pageSize = 24;
+	let pagesTotal = Math.ceil(data.artworks.length / pageSize);
 	let artworks = $state(data.artworks);
+	let currentArtworks = $derived(
+		data.artworks.slice((currentPage - 1) * pageSize, currentPage * pageSize)
+	);
 	let error = $state<string | null>(null);
 
+	$effect(() => {
+		const currentPageParam = data.url?.searchParams.get('page');
+		if (currentPageParam !== currentPage.toString()) {
+			const url = new URL(window.location.href);
+			url.searchParams.set('page', currentPage.toString());
+
+			goto(url.pathname + url.search, { replaceState: true, noScroll: true });
+		}
+	});
 	$effect(() => {
 		if (refreshing) {
 			(async () => {
@@ -34,12 +49,6 @@
 			})();
 		}
 	});
-
-	const elementAttach = (container: HTMLElement) => {
-		const masonry = new MiniMasonry({
-			container
-		});
-	};
 </script>
 
 <form class="flex w-full items-center justify-center space-x-2">
@@ -49,15 +58,33 @@
 		<IconMagnifyingGlassBold />
 	</Button>
 </form>
+<div>
+	<Button
+		disabled={currentPage === 1}
+		onclick={() => {
+			currentPage--;
+		}}>‹</Button
+	>
+	{#each Array(pagesTotal) as _, i}
+		<Button
+			disabled={currentPage === i + 1}
+			onclick={() => {
+				currentPage = i + 1;
+			}}>{i + 1}</Button
+		>
+	{/each}
+	<Button
+		disabled={currentPage === pagesTotal}
+		onclick={() => {
+			currentPage++;
+		}}>›</Button
+	>
+</div>
+
 {#if refreshing}
 	<p>Database is refreshing, please wait...</p>
 {:else if artworks.length === 0}
 	<p>No artworks available.</p>
 {:else}
-	<div class="relative mt-5 px-5" {@attach elementAttach}>
-		{#each artworks.slice(0, 24) as art}
-			<!--TODO: Pagination -->
-			<Artwork {art} thumbnail={true} />
-		{/each}
-	</div>
+	<Gallery artworks={currentArtworks} />
 {/if}
