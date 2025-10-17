@@ -1,6 +1,7 @@
 import type { RequestHandler } from '@sveltejs/kit';
 import { db } from '$lib/server/db';
-import { exhibit } from '$lib/server/db/schema';
+import * as table from '$lib/server/db/schema';
+import { json } from '@sveltejs/kit';
 
 export const POST: RequestHandler = async ({ locals, request }) => {
 	const userId = locals.user?.id;
@@ -13,13 +14,13 @@ export const POST: RequestHandler = async ({ locals, request }) => {
 	}
 	try {
 		const [newExhibit] = await db
-			.insert(exhibit)
+			.insert(table.exhibit)
 			.values({
 				userId,
 				name,
 				description
 			})
-			.returning({ id: exhibit.id });
+			.returning({ id: table.exhibit.id });
 
 		return new Response(JSON.stringify({ success: true, exhibitId: newExhibit.id }), {
 			status: 200
@@ -30,3 +31,8 @@ export const POST: RequestHandler = async ({ locals, request }) => {
 		});
 	}
 };
+
+export async function GET() {
+	const exhibits = await db.select().from(table.exhibit);
+	return json(exhibits);
+}
