@@ -1,8 +1,6 @@
 <script lang="ts">
-	import { browser } from '$app/environment';
-
 	let exhibitsPromise: Promise<any>;
-	if (browser) exhibitsPromise = fetch('/api/exhibits/').then((response) => response.json());
+	exhibitsPromise = fetch('/api/exhibits/').then((response) => response.json());
 </script>
 
 {#if exhibitsPromise}

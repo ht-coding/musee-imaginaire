@@ -2,12 +2,10 @@
 	import { Button } from '$lib/components/ui/button';
 	import Input from '$lib/components/ui/input/input.svelte';
 	import IconMagnifyingGlassBold from 'phosphor-icons-svelte/IconMagnifyingGlassBold.svelte';
-
-	import { browser } from '$app/environment';
 	import MiniMasonry from 'minimasonry';
 
 	let artworksPromise: Promise<any>;
-	if (browser) artworksPromise = fetch('/api/artworks').then((response) => response.json());
+	artworksPromise = fetch('/api/artworks').then((response) => response.json());
 
 	const elementAttach = (container: HTMLElement) => {
 		const masonry = new MiniMasonry({
