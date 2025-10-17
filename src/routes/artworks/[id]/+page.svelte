@@ -25,7 +25,10 @@
 			<figcaption class="text-sm text-gray-500">{artwork.creditLine}</figcaption>
 		</figure>
 		<h1 class="text-2xl">
-			{artwork.title} :: {artwork.artists[0].artist.name}
+			{artwork.title} :: {#each artwork.artists as artist, i}
+				{#if i !== 0}&
+				{/if}{artist.name}
+			{/each}
 		</h1>
 		<p>{artwork.description}</p>
 		<p>

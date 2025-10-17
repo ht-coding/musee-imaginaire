@@ -45,7 +45,7 @@ export async function GET({ params }) {
 	if (!artwork.length) {
 		throw error(404, 'Artwork not found');
 	}
-	const artists = await db
+	const artistsResults = await db
 		.select()
 		.from(table.artist)
 		.innerJoin(
@@ -59,6 +59,7 @@ export async function GET({ params }) {
 	if (!artwork.length) {
 		throw error(404, 'Artist not found');
 	}
+	const artists = artistsResults.map((row) => row.artist);
 	return json({ ...artwork[0], artists });
 }
 
