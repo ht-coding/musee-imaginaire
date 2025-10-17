@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
 	import { page } from '$app/state';
+	import Artwork from '$lib/components/Artwork.svelte';
 	import { onMount } from 'svelte';
 
 	let artworkPromise: Promise<any>;
@@ -15,15 +16,10 @@
 	{#await artworkPromise}
 		<p>Loading...</p>
 	{:then artwork}
-		<figure>
-			<img
-				src={artwork.collectionId === 'Harvard'
-					? artwork.imageURL + '?height=900&width=1200'
-					: artwork.thumbnailURL}
-				alt={artwork.alt}
-			/>
-			<figcaption class="text-sm text-gray-500">{artwork.creditLine}</figcaption>
-		</figure>
+		<div class="mx-auto max-w-3xl">
+			<Artwork art={artwork} />
+			<p class="text-sm text-gray-500">{artwork.creditLine}</p>
+		</div>
 		<h1 class="text-2xl">
 			{artwork.title} :: {#each artwork.artists as artist, i}
 				{#if i !== 0}&

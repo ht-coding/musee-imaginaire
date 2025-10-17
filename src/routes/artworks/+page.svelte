@@ -3,18 +3,43 @@
 	import Input from '$lib/components/ui/input/input.svelte';
 	import IconMagnifyingGlassBold from 'phosphor-icons-svelte/IconMagnifyingGlassBold.svelte';
 	import MiniMasonry from 'minimasonry';
+	import Artwork from '$lib/components/Artwork.svelte';
 
-	let artworksPromise: Promise<any>;
-	artworksPromise = fetch('/api/artworks').then((response) => response.json());
+	const { data } = $props();
+
+	let refreshing = $state(data.refreshing);
+	let artworks = $state(data.artworks);
+	let error = $state<string | null>(null);
+
+	$effect(() => {
+		if (refreshing) {
+			(async () => {
+				try {
+					const response = await fetch('/api/refresh');
+					if (!response.ok) {
+						const errorJson = await response.json();
+						throw new Error(errorJson.error || 'Refresh failed');
+					}
+					const artResponse = await fetch('/api/artworks');
+					if (!artResponse.ok) {
+						throw new Error('Failed to fetch updated artworks');
+					}
+					const updated = await artResponse.json();
+					artworks = updated;
+				} catch (err: any) {
+					error = err.message || 'Unknown error';
+				} finally {
+					refreshing = false;
+				}
+			})();
+		}
+	});
 
 	const elementAttach = (container: HTMLElement) => {
 		const masonry = new MiniMasonry({
 			container
 		});
 	};
-	function handleLoad(event: Event) {
-		event.target.parentElement.classList.remove('loading');
-	}
 </script>
 
 <form class="flex w-full items-center justify-center space-x-2">
@@ -24,70 +49,15 @@
 		<IconMagnifyingGlassBold />
 	</Button>
 </form>
-{#if artworksPromise}
-	{#await artworksPromise}
-		<p>Loading...</p>
-	{:then artworks}
-		<div class="relative mt-5 columns-4 px-5" style="height:400px" {@attach elementAttach}>
-			{#each artworks.slice(0, 24) as art}
-				<!--TODO: Pagination -->
-				<figure
-					class="visible absolute mb-5 break-inside-avoid opacity-100 transition-all"
-					style="--width:{art.width};--height:{art.height};"
-				>
-					<a
-						href="/artworks/{art.collectionId}-{art.artworkId}"
-						class="transition hover:opacity-90"
-					>
-						<div class="img-container loading h-full w-full shadow-sm/50">
-							<img
-								src={art.thumbnailURL}
-								alt={art.alt}
-								class="h-full w-full"
-								on:load={handleLoad}
-							/>
-						</div>
-					</a>
-				</figure>
-			{/each}
-		</div>
-	{:catch error}
-		<p>Error loading artworks: {error.message}</p>
-	{/await}
+{#if refreshing}
+	<p>Database is refreshing, please wait...</p>
+{:else if artworks.length === 0}
+	<p>No artworks available.</p>
+{:else}
+	<div class="relative mt-5 px-5" {@attach elementAttach}>
+		{#each artworks.slice(0, 24) as art}
+			<!--TODO: Pagination -->
+			<Artwork {art} thumbnail={true} />
+		{/each}
+	</div>
 {/if}
-
-<style>
-	@keyframes spin {
-		100% {
-			transform: rotate(1turn);
-		}
-	}
-	.img-container {
-		aspect-ratio: var(--width) / var(--height);
-		background: #eee;
-		border-color: #75553e;
-		border-style: inset inset outset outset;
-		border-width: 0.75em;
-	}
-	.loading {
-		position: relative;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		flex-direction: column;
-		&.img-container {
-			&::after {
-				content: '';
-				background-image: url('/assets/circle-notch.svg');
-				background-size: contain;
-				background-repeat: no-repeat;
-				width: 3rem;
-				height: 3rem;
-				display: block;
-				z-index: 2;
-				position: absolute;
-				animation: spin 1s linear infinite;
-			}
-		}
-	}
-</style>
