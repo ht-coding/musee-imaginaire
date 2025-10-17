@@ -230,11 +230,14 @@ async function linkArtistToArtwork(
 	artworkId: number,
 	artworkCollectionId: string
 ) {
-	return db.insert(table.artistsToArtworks).values({
-		artistId,
-		artworkId,
-		artworkCollectionId
-	});
+	return db
+		.insert(table.artistsToArtworks)
+		.values({
+			artistId,
+			artworkId,
+			artworkCollectionId
+		})
+		.onConflictDoNothing();
 }
 
 export async function isApiStale(): Promise<boolean> {
