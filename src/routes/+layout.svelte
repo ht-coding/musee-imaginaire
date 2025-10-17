@@ -49,7 +49,11 @@
 					Hi <a href="/account" class="underline">{data.user.username}</a>!
 				</p>
 			{:else if page.url.pathname !== '/account/login'}
-				<a href="/account/login" class="underline">Login</a>
+				<a
+					href={'/account/login?redirect=' +
+						encodeURIComponent(page.url.pathname + page.url.search)}
+					class="underline">Login</a
+				>
 			{/if}
 		</section>
 	</div>

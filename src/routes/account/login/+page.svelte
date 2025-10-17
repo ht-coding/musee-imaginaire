@@ -5,6 +5,7 @@
 	import * as Field from '$lib/components/ui/field/index.js';
 	import { Button } from '$lib/components/ui/button';
 	import { Input } from '$lib/components/ui/input';
+	import { page } from '$app/state';
 
 	let { form }: { form: ActionData } = $props();
 </script>
@@ -13,6 +14,11 @@
 	<Field.Set class="mx-auto mt-5 max-w-4xl rounded-2xl bg-white p-5 text-center">
 		<h1>Login/Register</h1>
 		<Field.Group>
+			<input
+				type="hidden"
+				name="redirect"
+				value={decodeURIComponent(page.url.searchParams.get('redirect') ?? '/')}
+			/>
 			<Field.Field>
 				<Field.Label for="username">Username</Field.Label>
 				<Input id="username" type="text" name="username" placeholder="ArtFan123" minlength={3} />
