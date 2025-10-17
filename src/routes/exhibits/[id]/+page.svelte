@@ -5,8 +5,10 @@
 </script>
 
 {#if data.exhibit}
-	{data.exhibit.name}
-	{data.exhibit.description}
+	<h1 class="text-3xl">{data.exhibit.name}</h1>
+	<p>
+		{data.exhibit.description}
+	</p>
 	<Gallery artworks={data.artworks} />
 {:else}
 	No Exhibit found with that ID
