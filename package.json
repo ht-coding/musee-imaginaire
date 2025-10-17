@@ -20,6 +20,7 @@
 		"db:studio": "drizzle-kit studio"
 	},
 	"devDependencies": {
+		"@internationalized/date": "^3.10.0",
 		"@lucide/svelte": "^0.544.0",
 		"@oslojs/crypto": "^1.0.1",
 		"@oslojs/encoding": "^1.1.0",
@@ -30,6 +31,7 @@
 		"@tailwindcss/typography": "^0.5.15",
 		"@tailwindcss/vite": "^4.0.0",
 		"@types/node": "^22",
+		"bits-ui": "^2.11.8",
 		"clsx": "^2.1.1",
 		"drizzle-kit": "^0.30.2",
 		"drizzle-orm": "^0.40.0",
