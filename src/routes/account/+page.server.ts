@@ -3,9 +3,20 @@ import { fail, redirect } from '@sveltejs/kit';
 import { getRequestEvent } from '$app/server';
 import type { Actions, PageServerLoad } from './$types';
 
-export const load: PageServerLoad = async () => {
+export const load: PageServerLoad = async ({ fetch }) => {
 	const user = requireLogin();
-	return { user };
+	const response = await fetch(`/api/users/${user.username}/exhibits`);
+
+	if (!response.ok) {
+		throw new Error(`Failed to fetch exhibits for ${user.username}: ${response.status}`);
+	}
+
+	const exhibits = await response.json();
+
+	return {
+		user,
+		exhibits
+	};
 };
 
 export const actions: Actions = {
