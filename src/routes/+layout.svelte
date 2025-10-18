@@ -60,6 +60,6 @@
 	</div>
 </nav>
 
-<main class="m-auto h-100 max-w-7xl">
+<main class="m-auto mb-5 max-w-7xl">
 	{@render children?.()}
 </main>
