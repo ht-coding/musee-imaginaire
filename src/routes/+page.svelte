@@ -1,6 +1,46 @@
-<article class="m-auto max-w-4xl rounded-2xl bg-white p-5 text-center">
-	<h1 class="py-5 text-4xl">Your Musée Imaginaire</h1>
+<script lang="ts">
+	import { goto } from '$app/navigation';
+	import Searchbar from '$lib/components/Searchbar.svelte';
+	import * as Carousel from '$lib/components/ui/carousel/index.js';
+	import Autoplay from 'embla-carousel-autoplay';
+	let inputValue = $state('');
+	const { data } = $props();
+</script>
 
+<form
+	class="mt-5 flex w-full items-center justify-center space-x-2"
+	onsubmit={(event) => {
+		event.preventDefault();
+		goto('/artworks');
+	}}
+>
+	<Searchbar bind:inputValue />
+</form>
+
+<Carousel.Root
+	opts={{
+		align: 'center',
+		loop: true
+	}}
+	plugins={[
+		Autoplay({
+			delay: 4000
+		})
+	]}
+	class="mx-auto mt-5 w-full max-w-4xl overflow-clip rounded-t-2xl"
+>
+	<Carousel.Content>
+		{#each data.artworks as artwork, i (i)}
+			<Carousel.Item class="md:basis-1/2 lg:basis-1/6">
+				<div class="h-full">
+					<img src={artwork.thumbnailURL} class="h-full w-full object-cover" alt="" />
+				</div>
+			</Carousel.Item>
+		{/each}
+	</Carousel.Content>
+</Carousel.Root>
+
+<article class="m-auto max-w-4xl rounded-b-2xl bg-white p-5 text-center">
 	<blockquote
 		class="text-xl italic"
 		cite="https://www.universalis.fr/encyclopedie/musee-imaginaire/"
