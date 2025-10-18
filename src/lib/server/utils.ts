@@ -3,6 +3,7 @@ import { db } from '$lib/server/db';
 import * as table from '$lib/server/db/schema';
 import { HARVARD_API_KEY } from '$env/static/private';
 import type { InferInsertModel } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
 
 type HarvardRecord = {
 	id: number;
@@ -281,4 +282,73 @@ export async function refreshApi() {
 			target: table.apiRefreshLog.id,
 			set: { lastRefresh: new Date() }
 		});
+}
+
+export async function fetchExhibits(options: {
+	includeEmptyExhibits?: boolean;
+	userId?: string;
+	exhibitId?: number;
+}) {
+	const { includeEmptyExhibits = false, userId, exhibitId } = options;
+
+	let query;
+
+	if (includeEmptyExhibits)
+		query = db
+			.select({ exhibit: table.exhibit, artwork: table.artwork, link: table.exhibitToArtworks })
+			.from(table.exhibit)
+			.leftJoin(table.exhibitToArtworks, eq(table.exhibit.id, table.exhibitToArtworks.exhibitId))
+			.leftJoin(
+				table.artwork,
+				and(
+					eq(table.artwork.collectionId, table.exhibitToArtworks.artworkCollectionId),
+					eq(table.artwork.artworkId, table.exhibitToArtworks.artworkId)
+				)
+			);
+	else
+		query = db
+			.select({ exhibit: table.exhibit, artwork: table.artwork, link: table.exhibitToArtworks })
+			.from(table.exhibit)
+			.innerJoin(table.exhibitToArtworks, eq(table.exhibit.id, table.exhibitToArtworks.exhibitId))
+			.innerJoin(
+				table.artwork,
+				and(
+					eq(table.artwork.collectionId, table.exhibitToArtworks.artworkCollectionId),
+					eq(table.artwork.artworkId, table.exhibitToArtworks.artworkId)
+				)
+			);
+
+	if (userId) query = query.where(eq(table.exhibit.userId, userId));
+	else if (exhibitId) query = query.where(eq(table.exhibit.id, exhibitId));
+
+	query = query.orderBy(table.exhibit.id, table.exhibitToArtworks.addedAt);
+
+	let rows = await query;
+
+	if (exhibitId) {
+		const exhibit = rows[0].exhibit;
+		const artworks = rows
+			.filter((row) => row.link)
+			.map((row) => ({
+				...row.artwork!,
+				addedAt: row.link!.addedAt
+			}));
+		return { ...exhibit, artworks };
+	}
+
+	const seen = new Set<number>();
+	const filteredExhibits = rows
+		.filter((row) => {
+			if (seen.has(row.exhibit.id)) return false;
+			seen.add(row.exhibit.id);
+			return true;
+		})
+		.map((row) => ({
+			id: row.exhibit.id,
+			name: row.exhibit.name,
+			description: row.exhibit.description,
+			createdAt: row.exhibit.createdAt,
+			thumbnail: row.artwork?.thumbnailURL ?? null
+		}));
+	return filteredExhibits;
 }
