@@ -3,6 +3,7 @@ import type { PageServerLoad, Actions } from '../$types';
 import { db } from '$lib/server/db';
 import * as table from '$lib/server/db/schema';
 import { eq } from 'drizzle-orm';
+import { fetchExhibits } from '$lib/server/utils';
 
 export const load: PageServerLoad = async ({ fetch, params, locals }) => {
 	const response = await fetch(`/api/artworks/${params.id}`);
@@ -11,14 +12,10 @@ export const load: PageServerLoad = async ({ fetch, params, locals }) => {
 		throw new Error(`Failed to fetch artwork: ${response.status}`);
 	}
 	const artwork = await response.json();
-	let exhibits = [];
-	if (locals.user) {
-		const response = await fetch(`/api/users/${locals.user.username}/exhibits`);
-		if (!response.ok) {
-			throw new Error(`Failed to fetch exhibits: ${response.status}`);
-		}
-		exhibits = await response.json();
-	}
+	const exhibits = await fetchExhibits({
+		includeEmptyExhibits: true,
+		userId: locals.user?.id ?? undefined
+	});
 	return {
 		artwork,
 		exhibits
