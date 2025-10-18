@@ -1,24 +1,52 @@
 <script lang="ts">
 	import Gallery from '$lib/components/Gallery.svelte';
 	import { Button } from '$lib/components/ui/button';
-	import Input from '$lib/components/ui/input/input.svelte';
-	import IconMagnifyingGlassBold from 'phosphor-icons-svelte/IconMagnifyingGlassBold.svelte';
 	import { goto } from '$app/navigation';
+	import Fuse from 'fuse.js';
+	import Searchbar from '$lib/components/Searchbar.svelte';
+
 	const { data } = $props();
 
 	let refreshing = $state(data.refreshing);
+	let error = $state<string | null>(null);
+
+	const fuse = new Fuse(data.artworks, {
+		keys: [
+			'collection',
+			'title',
+			'medium',
+			'description',
+			'alt',
+			'department',
+			'artist.culture',
+			'artist.name',
+			'artist.years',
+			'artist.gender'
+		],
+		ignoreDiacritics: true,
+		threshold: 0.3
+	});
+
+	let searchQuery = $state(data.query);
+	let inputValue = $state(data.query);
+
+	let artworks = $derived(
+		searchQuery ? fuse.search(searchQuery).map((result) => result.item) : data.artworks
+	);
+
 	let currentPage = $state(data.page || 1);
 	let pageSize = 24;
-	let pagesTotal = Math.ceil(data.artworks.length / pageSize);
-	let artworks = $state(data.artworks);
+	let pagesTotal = $derived(Math.ceil(artworks.length / pageSize));
 	let currentArtworks = $derived(
-		data.artworks.slice((currentPage - 1) * pageSize, currentPage * pageSize)
+		artworks.slice((currentPage - 1) * pageSize, currentPage * pageSize)
 	);
-	let error = $state<string | null>(null);
 
 	$effect(() => {
 		const url = new URL(window.location.href);
 		url.searchParams.set('page', currentPage.toString());
+		if (currentPage === 1) url.searchParams.delete('page');
+		url.searchParams.set('q', searchQuery ?? '');
+		if (!searchQuery) url.searchParams.delete('q');
 
 		goto(url.pathname + url.search, { replaceState: true, noScroll: true });
 	});
@@ -47,35 +75,17 @@
 	});
 </script>
 
-<form class="flex w-full items-center justify-center space-x-2" style="display:none!important">
-	<!--TODO: implement fuzzy search for artworks -->
-	<Input type="text" placeholder="Search" class=" max-w-sm" />
-	<Button type="submit">
-		<IconMagnifyingGlassBold />
-	</Button>
+<form
+	class="mt-5 flex w-full items-center justify-center space-x-2"
+	onsubmit={(event) => {
+		event.preventDefault();
+		searchQuery = inputValue;
+	}}
+>
+	<Searchbar bind:inputValue />
 </form>
-<div class="mx-auto mt-5">
-	<Button
-		disabled={currentPage === 1}
-		onclick={() => {
-			currentPage--;
-		}}>‹</Button
-	>
-	{#each Array(pagesTotal) as _, i}
-		<Button
-			disabled={currentPage === i + 1}
-			onclick={() => {
-				currentPage = i + 1;
-			}}>{i + 1}</Button
-		>
-	{/each}
-	<Button
-		disabled={currentPage === pagesTotal}
-		onclick={() => {
-			currentPage++;
-		}}>›</Button
-	>
-</div>
+
+{@render pagination()}
 
 {#if refreshing}
 	<p>Database is refreshing, please wait...</p>
@@ -84,3 +94,30 @@
 {:else}
 	<Gallery artworks={currentArtworks} />
 {/if}
+
+{@render pagination()}
+
+{#snippet pagination()}
+	<div class="mt-5 flex justify-center gap-1">
+		<Button
+			disabled={currentPage === 1}
+			onclick={() => {
+				currentPage--;
+			}}>‹</Button
+		>
+		{#each Array(pagesTotal) as _, i}
+			<Button
+				disabled={currentPage === i + 1}
+				onclick={() => {
+					currentPage = i + 1;
+				}}>{i + 1}</Button
+			>
+		{/each}
+		<Button
+			disabled={currentPage === pagesTotal}
+			onclick={() => {
+				currentPage++;
+			}}>›</Button
+		>
+	</div>
+{/snippet}
