@@ -290,7 +290,6 @@ export async function fetchExhibits(options: {
 	exhibitId?: number;
 }) {
 	const { includeEmptyExhibits = false, userId, exhibitId } = options;
-
 	let query;
 
 	if (includeEmptyExhibits)
@@ -320,9 +319,7 @@ export async function fetchExhibits(options: {
 
 	if (userId) query = query.where(eq(table.exhibit.userId, userId));
 	else if (exhibitId) query = query.where(eq(table.exhibit.id, exhibitId));
-
-	query = query.orderBy(table.exhibit.id, table.exhibitToArtworks.addedAt);
-
+	query = query.orderBy(table.exhibit.userId, table.exhibitToArtworks.addedAt);
 	let rows = await query;
 
 	if (exhibitId) {
@@ -335,7 +332,6 @@ export async function fetchExhibits(options: {
 			}));
 		return { ...exhibit, artworks };
 	}
-
 	const seen = new Set<number>();
 	const filteredExhibits = rows
 		.filter((row) => {
