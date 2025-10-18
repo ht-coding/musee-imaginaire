@@ -7,8 +7,8 @@
 	let { data }: { data: PageServerData } = $props();
 </script>
 
-<form method="post" action="?/logout" use:enhance>
+<ExhibitList {data} title="Your Exhibits" />
+<form class="text-center" method="post" action="?/logout" use:enhance>
+	<Button href="/exhibits/new">Create a new exhibit</Button>
 	<Button type="submit">Sign out</Button>
 </form>
-
-<ExhibitList {data} />

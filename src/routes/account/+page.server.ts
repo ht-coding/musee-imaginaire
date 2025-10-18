@@ -2,16 +2,12 @@ import * as auth from '$lib/server/auth';
 import { fail, redirect } from '@sveltejs/kit';
 import { getRequestEvent } from '$app/server';
 import type { Actions, PageServerLoad } from './$types';
+import { fetchExhibits } from '$lib/server/utils';
 
-export const load: PageServerLoad = async ({ fetch }) => {
+export const load: PageServerLoad = async () => {
 	const user = requireLogin();
-	const response = await fetch(`/api/users/${user.username}/exhibits`);
 
-	if (!response.ok) {
-		throw new Error(`Failed to fetch exhibits for ${user.username}: ${response.status}`);
-	}
-
-	const exhibits = await response.json();
+	const exhibits = await fetchExhibits({ includeEmptyExhibits: true, userId: user.id });
 
 	return {
 		user,
