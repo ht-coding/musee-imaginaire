@@ -11,8 +11,8 @@ export const actions = {
 		const name = data.get('name');
 		const description = data.get('description');
 
-		if (typeof name !== 'string') {
-			return fail(400, { error: 'Name is required' });
+		if (typeof name !== 'string' || name.length === 0) {
+			return fail(400, { message: 'Name is required' });
 		}
 		try {
 			await db.insert(table.exhibit).values({
@@ -23,7 +23,7 @@ export const actions = {
 
 			return { success: true };
 		} catch (error) {
-			return fail(500, { error: (error as Error).message });
+			return fail(500, { message: (error as Error).message });
 		}
 	}
 };
