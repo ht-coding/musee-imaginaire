@@ -31,10 +31,8 @@
 >
 	<Carousel.Content>
 		{#each data.artworks as artwork, i (i)}
-			<Carousel.Item class="md:basis-1/2 lg:basis-1/6">
-				<div class="h-full">
-					<img src={artwork.thumbnailURL} class="h-full w-full object-cover" alt="" />
-				</div>
+			<Carousel.Item class="basis-1/3 sm:basis-1/4 md:basis-1/6">
+				<img src={artwork.thumbnailURL} class="h-full w-full object-cover" alt="" />
 			</Carousel.Item>
 		{/each}
 	</Carousel.Content>

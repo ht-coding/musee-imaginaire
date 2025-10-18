@@ -1,9 +1,12 @@
 <script lang="ts">
 	import Gallery from '$lib/components/Gallery.svelte';
 	import { Button } from '$lib/components/ui/button';
+	import * as Select from '$lib/components/ui/select/index.js';
 	import { goto } from '$app/navigation';
 	import Fuse from 'fuse.js';
 	import Searchbar from '$lib/components/Searchbar.svelte';
+	import IconSortAscendingBold from 'phosphor-icons-svelte/IconSortAscendingBold.svelte';
+	import IconSortDescendingBold from 'phosphor-icons-svelte/IconSortDescendingBold.svelte';
 
 	const { data } = $props();
 
@@ -83,10 +86,15 @@
 			})();
 		}
 	});
+
+	let value = $state('Collection');
+	let ascending = $state(true);
+	const sortingCriteria = ['Title', 'Artist', 'Medium', 'Accession Year', 'Collection'];
+	const triggerContent = $derived(sortingCriteria.find((option) => option === value));
 </script>
 
 <form
-	class="mt-5 flex w-full items-center justify-center space-x-2"
+	class="my-5 flex w-full items-center justify-center space-x-2"
 	onsubmit={(event) => {
 		event.preventDefault();
 		searchQuery = inputValue;
@@ -94,8 +102,32 @@
 >
 	<Searchbar bind:inputValue />
 </form>
-
 {@render pagination()}
+<!-- TODO: implement sorting-->
+<div class="mt-3 !hidden flex items-center justify-center gap-2">
+	Sort by: <Select.Root type="single" name="exhibitToAddTo" bind:value>
+		<Select.Trigger class="w-[180px] bg-white">
+			{triggerContent}
+		</Select.Trigger>
+		<Select.Content>
+			<Select.Group>
+				<Select.Label>Your Exhibits</Select.Label>
+				{#each sortingCriteria as critereon, i (i)}
+					<Select.Item value={critereon} label={critereon}>
+						{critereon}
+					</Select.Item>
+				{/each}
+			</Select.Group>
+		</Select.Content>
+	</Select.Root>
+	<Button>
+		{#if ascending}
+			<IconSortAscendingBold />
+		{:else}
+			<IconSortDescendingBold />
+		{/if}
+	</Button>
+</div>
 
 {#if refreshing}
 	<p>Database is refreshing, please wait...</p>
@@ -108,7 +140,7 @@
 {@render pagination()}
 
 {#snippet pagination()}
-	<div class="mt-5 flex justify-center gap-1">
+	<div class="flex justify-center gap-1">
 		<Button
 			disabled={currentPage === 1}
 			onclick={() => {

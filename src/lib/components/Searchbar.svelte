@@ -9,9 +9,9 @@
 <Input
 	type="text"
 	placeholder="Begin typing..."
-	class="h-12 max-w-md !text-2xl"
+	class="max-w-sm md:h-12 md:max-w-md md:!text-2xl"
 	bind:value={inputValue}
 />
-<Button type="submit" size="lg" class="!m-0 !px-5 py-6 !text-lg">
+<Button type="submit" class="md:!m-0 md:!px-5 md:py-6 md:!text-lg">
 	<IconMagnifyingGlassBold /> Search
 </Button>

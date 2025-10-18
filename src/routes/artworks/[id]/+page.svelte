@@ -21,7 +21,7 @@
 	<h2 class="text-2xl">
 		{data.artwork.title}
 	</h2>
-	<dl class="my-3 grid grid-cols-[auto_1fr_auto_1fr] gap-x-5 gap-y-3">
+	<dl class="my-3 grid gap-x-5 gap-y-3 sm:grid-cols-[auto_1fr] lg:grid-cols-[auto_1fr_auto_1fr]">
 		<dt>Collection</dt>
 		<dl>{data.artwork.collection}</dl>
 		<dt>People</dt>
