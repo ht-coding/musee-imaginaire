@@ -17,12 +17,12 @@
 	<Artwork art={data.artwork} />
 	<p class="text-sm text-gray-500">{data.artwork.creditLine}</p>
 </div>
-<h1 class="text-2xl">
+<h2 class="text-2xl">
 	{data.artwork.title} :: {#each data.artwork.artists as artist, i}
 		{#if i !== 0}&
 		{/if}{artist.name}
 	{/each}
-</h1>
+</h2>
 {#if data.exhibits.length > 0}
 	<form method="post" action="?/addToExhibit" use:enhance>
 		<input type="hidden" value={data.artwork.collectionId} name="collectionId" />

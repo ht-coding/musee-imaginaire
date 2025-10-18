@@ -12,7 +12,7 @@
 
 <form method="post" action="?/login" use:enhance>
 	<Field.Set class="mx-auto mt-5 max-w-4xl rounded-2xl bg-white p-5 text-center">
-		<h1>Login/Register</h1>
+		<h2>Login/Register</h2>
 		<Field.Group>
 			<input
 				type="hidden"
