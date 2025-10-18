@@ -9,7 +9,6 @@
 
 	let refreshing = $state(data.refreshing);
 	let error = $state<string | null>(null);
-
 	const fuse = new Fuse(data.artworks, {
 		keys: [
 			'collection',
@@ -18,14 +17,25 @@
 			'description',
 			'alt',
 			'department',
-			'artist.culture',
-			'artist.name',
-			'artist.years',
-			'artist.gender'
+			['artists', 'name'],
+			['artists', 'culture'],
+			['artists', 'years'],
+			['artists', 'gender']
 		],
-		ignoreDiacritics: true,
+		getFn: customGetFn,
 		threshold: 0.3
 	});
+
+	function customGetFn(object: any, path: string | string[]) {
+		if (typeof path === 'string') return object[path];
+		const flattenedValue = path.reduce((value: any, key: string) => {
+			if (Array.isArray(value)) {
+				return value.flatMap((item) => item[key] || []);
+			}
+			return value?.[key];
+		}, object);
+		return flattenedValue;
+	}
 
 	let searchQuery = $state(data.query);
 	let inputValue = $state(data.query);
