@@ -49,7 +49,7 @@
 	</p>
 	{#if data.user}
 		{#if data.exhibits.length > 0}
-			<form method="post" class="flex justify-center" action="?/addToExhibit" use:enhance>
+			<form method="post" class="flex max-w-100 justify-center" action="?/addToExhibit" use:enhance>
 				<input type="hidden" value={data.artwork.collectionId} name="collectionId" />
 				<input type="hidden" value={data.artwork.artworkId} name="artworkId" />
 				<Field.Set
