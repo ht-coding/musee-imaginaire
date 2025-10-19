@@ -13,7 +13,7 @@
 	let refreshing = $state(data.refreshing);
 	let error = $state<string | null>(null);
 
-	let category = $state(data.category || 'title');
+	let category = $state(data.category || 'Title');
 	let ascending = $state(data.order || false);
 	const searchCriteria = ['Title', 'Artist', 'Medium', 'Accession Year', 'Description'];
 	let triggerContent = $derived(searchCriteria.find((option) => option === category));
