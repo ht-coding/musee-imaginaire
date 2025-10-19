@@ -1,4 +1,4 @@
-[![Netlify Status](https://api.netlify.com/api/v1/badges/6d020aba-ab01-4d2a-b662-a4c550b303ad/deploy-status)](https://app.netlify.com/projects/museeimaginaire/deploys)
+[![Netlify Status](https://api.netlify.com/api/v1/badges/995873ec-f2ec-435c-8c66-cd476d5b9105/deploy-status)](https://app.netlify.com/projects/museeimaginaire/deploys)
 
 A live demo of the project can be viewed [here](https://museeimaginaire.netlify.app).
 
