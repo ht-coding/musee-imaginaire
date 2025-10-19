@@ -22,10 +22,10 @@
 	<div class="mx-auto flex h-16 items-center justify-between px-2 sm:px-6 lg:px-8">
 		<a href="/" class=" inline-flex items-center gap-3 text-2xl text-white"
 			><PaletteBold class="h-8 w-auto text-pink-500" />
-			<h1>Musée Imaginaire</h1></a
+			<h1 class="hidden md:inline">Musée Imaginaire</h1></a
 		>
 
-		<ul class="me-auto hidden space-x-4 sm:ml-6 sm:flex">
+		<ul class="me-auto ml-6 flex space-x-4">
 			<li>
 				<Button
 					href="/artworks"
@@ -60,6 +60,6 @@
 	</div>
 </nav>
 
-<main class="m-auto mb-5 max-w-7xl">
+<main class="mx-5 mb-5 max-w-7xl sm:mx-auto">
 	{@render children?.()}
 </main>
