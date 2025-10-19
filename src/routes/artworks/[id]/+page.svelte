@@ -14,7 +14,7 @@
 	);
 </script>
 
-<div class="mx-auto my-5 w-3xl">
+<div class="mx-auto my-5 w-3xl max-w-full">
 	<Artwork art={data.artwork} />
 </div>
 <article class="rounded-2xl bg-white p-5">
