@@ -50,6 +50,18 @@
 	let currentPage = $state(data.page || 1);
 	let pageSize = 24;
 	let pagesTotal = $derived(Math.ceil(artworks.length / pageSize));
+	let buttonCount = 5;
+	let visiblePages = $derived.by(() => {
+		if (pagesTotal <= buttonCount) return Array.from({ length: pagesTotal }, (_, i) => i + 1);
+
+		let start = Math.max(1, currentPage - Math.floor(buttonCount / 2));
+		let end = start + buttonCount - 1;
+		if (end > pagesTotal) {
+			end = pagesTotal;
+			start = end - buttonCount + 1;
+		}
+		return Array.from({ length: end - start + 1 }, (_, i) => start + i);
+	});
 	let currentArtworks = $derived(
 		artworks.slice((currentPage - 1) * pageSize, currentPage * pageSize)
 	);
@@ -147,12 +159,12 @@
 				currentPage--;
 			}}>‹</Button
 		>
-		{#each Array(pagesTotal) as _, i}
+		{#each visiblePages as page}
 			<Button
-				disabled={currentPage === i + 1}
+				disabled={currentPage === page}
 				onclick={() => {
-					currentPage = i + 1;
-				}}>{i + 1}</Button
+					currentPage = page;
+				}}>{page}</Button
 			>
 		{/each}
 		<Button
