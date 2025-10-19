@@ -146,6 +146,9 @@
 			})();
 		}
 	});
+	function scrollToTop() {
+		window.scrollTo(0, 0);
+	}
 </script>
 
 <div class="mt-3 flex items-center justify-center gap-2">
@@ -204,6 +207,7 @@
 			disabled={currentPage === 1}
 			onclick={() => {
 				currentPage--;
+				scrollToTop();
 			}}>‹</Button
 		>
 		{#each visiblePages as page}
@@ -211,6 +215,7 @@
 				disabled={currentPage === page}
 				onclick={() => {
 					currentPage = page;
+					scrollToTop();
 				}}>{page}</Button
 			>
 		{/each}
@@ -218,6 +223,7 @@
 			disabled={currentPage === pagesTotal}
 			onclick={() => {
 				currentPage++;
+				scrollToTop();
 			}}>›</Button
 		>
 	</div>
