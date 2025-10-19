@@ -12,11 +12,11 @@
 	<h2 class="mb-3 text-center text-2xl">Create a new Exhibit</h2>
 	<Field.Field>
 		<Field.Label for="name">Exhibit Name</Field.Label>
-		<Input type="text" placeholder="Title" name="name"></Input>
+		<Input type="text" placeholder="Title" name="name" id="name"></Input>
 	</Field.Field>
-	<Field.Field>
-		<Field.Label for="name">Exhibit Description</Field.Label>
-		<Textarea placeholder="Enter text here..." name="description" />
+	<Field.Field class="mt-3">
+		<Field.Label for="description">Exhibit Description</Field.Label>
+		<Textarea placeholder="Enter text here..." name="description" id="description" />
 	</Field.Field>
 	<p style="color: red">{form?.message ?? ''}</p>
 
