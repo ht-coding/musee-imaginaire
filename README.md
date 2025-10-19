@@ -6,6 +6,8 @@
 
 A live demo of the project can be viewed [here](https://museeimaginaire.netlify.app).
 
+You can log in using the username `test` and the password `password`
+
 # Set up
 
 1. clone the repo
