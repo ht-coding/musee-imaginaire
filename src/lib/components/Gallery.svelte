@@ -23,7 +23,7 @@
 	});
 </script>
 
-<div class="relative mt-5 px-5" bind:this={container}>
+<div class="relative my-5" bind:this={container}>
 	{#each artworks as art}
 		<Artwork {art} thumbnail={true} />
 	{/each}
