@@ -26,8 +26,12 @@
 		<dl>{data.artwork.collection}</dl>
 		<dt>People</dt>
 		<dl>
-			{#each data.artwork.artists as artist, i}{#if i !== 0}&
-				{/if}{artist.name} ({artist.culture}, {artist.years})
+			{#each data.artwork.artists as artist, i}{#if i !== 0}
+					&
+				{/if}{artist.name}
+				{#if artist.culture || artist.years}({artist.culture + artist.years
+						? ', '
+						: ''}{artist.years}{/if})
 			{/each}
 		</dl>
 		<dt>Medium</dt>
