@@ -12,33 +12,72 @@
 
 	let refreshing = $state(data.refreshing);
 	let error = $state<string | null>(null);
-	const fuse = new Fuse(data.artworks, {
-		keys: [
-			'collection',
-			'title',
-			'medium',
-			'description',
-			'alt',
-			'department',
-			['artists', 'name'],
-			['artists', 'culture'],
-			['artists', 'years'],
-			['artists', 'gender']
-		],
-		getFn: customGetFn,
-		threshold: 0.3
-	});
 
-	function customGetFn(object: any, path: string | string[]) {
-		if (typeof path === 'string') return object[path];
-		const flattenedValue = path.reduce((value: any, key: string) => {
-			if (Array.isArray(value)) {
-				return value.flatMap((item) => item[key] || []);
-			}
-			return value?.[key];
-		}, object);
-		return flattenedValue;
-	}
+	let category = $state(data.category || 'title');
+	let ascending = $state(data.order || false);
+	const searchCriteria = ['Title', 'Artist', 'Medium', 'Accession Year', 'Description'];
+	let triggerContent = $derived(searchCriteria.find((option) => option === category));
+	let searchCategory = $derived.by(() => {
+		switch (triggerContent) {
+			case 'Title':
+				return ['title'];
+
+			case 'Artist':
+				return [
+					['artists', 'name'],
+					['artists', 'culture'],
+					['artists', 'years'],
+					['artists', 'gender']
+				];
+
+			case 'Medium':
+				return ['medium'];
+
+			case 'Accession Year':
+				return ['accessionYear'];
+
+			case 'Description':
+				return ['description', 'alt'];
+
+			default:
+				return [
+					'collection',
+					'title',
+					'medium',
+					'description',
+					'alt',
+					'department',
+					['artists', 'name'],
+					['artists', 'culture'],
+					['artists', 'years'],
+					['artists', 'gender']
+				];
+		}
+	});
+	let fuse: Fuse<any> = $state(
+		new Fuse(data.artworks, {
+			keys: ['title'],
+			threshold: 0.3
+		})
+	);
+
+	$effect(() => {
+		function customSortFn(a, b) {
+			const originalA = data.artworks[a.idx];
+			const originalB = data.artworks[b.idx];
+
+			const titleA = (originalA.title || '').toLowerCase();
+			const titleB = (originalB.title || '').toLowerCase();
+
+			const cmp = titleA.localeCompare(titleB);
+			return cmp;
+		}
+		fuse = new Fuse(data.artworks, {
+			keys: searchCategory,
+			sortFn: customSortFn,
+			threshold: 0.3
+		});
+	});
 
 	let searchQuery = $state(data.query);
 	let inputValue = $state(data.query);
@@ -46,6 +85,7 @@
 	let artworks = $derived(
 		searchQuery ? fuse.search(searchQuery).map((result) => result.item) : data.artworks
 	);
+	let artworksSorted = $derived(ascending ? artworks.toReversed() : artworks);
 
 	let currentPage = $state(data.page || 1);
 	let pageSize = 24;
@@ -63,15 +103,23 @@
 		return Array.from({ length: end - start + 1 }, (_, i) => start + i);
 	});
 	let currentArtworks = $derived(
-		artworks.slice((currentPage - 1) * pageSize, currentPage * pageSize)
+		artworksSorted.slice((currentPage - 1) * pageSize, currentPage * pageSize)
 	);
 
 	$effect(() => {
 		const url = new URL(window.location.href);
-		url.searchParams.set('page', currentPage.toString());
-		if (currentPage === 1) url.searchParams.delete('page');
-		url.searchParams.set('q', searchQuery ?? '');
-		if (!searchQuery) url.searchParams.delete('q');
+		const setParam = (key: string, value?: string | null, condition: boolean = true) => {
+			if (condition && value) {
+				url.searchParams.set(key, value);
+			} else {
+				url.searchParams.delete(key);
+			}
+		};
+
+		setParam('page', currentPage.toString(), currentPage !== 1);
+		setParam('q', searchQuery, !!searchQuery);
+		setParam('order', 'asc', ascending as boolean);
+		setParam('category', category, category !== 'Title');
 
 		goto(url.pathname + url.search, { replaceState: true, noScroll: true });
 	});
@@ -98,13 +146,37 @@
 			})();
 		}
 	});
-
-	let value = $state('Collection');
-	let ascending = $state(true);
-	const sortingCriteria = ['Title', 'Artist', 'Medium', 'Accession Year', 'Collection'];
-	const triggerContent = $derived(sortingCriteria.find((option) => option === value));
 </script>
 
+<div class="mt-3 flex items-center justify-center gap-2">
+	Search by: <Select.Root type="single" name="exhibitToAddTo" bind:value={category}>
+		<Select.Trigger class="w-[180px] bg-white">
+			{triggerContent}
+		</Select.Trigger>
+		<Select.Content>
+			<Select.Group>
+				<Select.Label>Search Criteria</Select.Label>
+				{#each searchCriteria as critereon, i (i)}
+					<Select.Item value={critereon} label={critereon}>
+						{critereon}
+					</Select.Item>
+				{/each}
+			</Select.Group>
+		</Select.Content>
+	</Select.Root>
+	<Button
+		onclick={() => {
+			ascending = !ascending;
+			currentPage = 1;
+		}}
+	>
+		{#if ascending}
+			<IconSortAscendingBold /> Ascending
+		{:else}
+			<IconSortDescendingBold /> Descending
+		{/if}
+	</Button>
+</div>
 <form
 	class="my-5 flex w-full items-center justify-center space-x-2"
 	onsubmit={(event) => {
@@ -115,31 +187,6 @@
 	<Searchbar bind:inputValue />
 </form>
 {@render pagination()}
-<!-- TODO: implement sorting-->
-<div class="mt-3 !hidden flex items-center justify-center gap-2">
-	Sort by: <Select.Root type="single" name="exhibitToAddTo" bind:value>
-		<Select.Trigger class="w-[180px] bg-white">
-			{triggerContent}
-		</Select.Trigger>
-		<Select.Content>
-			<Select.Group>
-				<Select.Label>Your Exhibits</Select.Label>
-				{#each sortingCriteria as critereon, i (i)}
-					<Select.Item value={critereon} label={critereon}>
-						{critereon}
-					</Select.Item>
-				{/each}
-			</Select.Group>
-		</Select.Content>
-	</Select.Root>
-	<Button>
-		{#if ascending}
-			<IconSortAscendingBold />
-		{:else}
-			<IconSortDescendingBold />
-		{/if}
-	</Button>
-</div>
 
 {#if refreshing}
 	<p>Database is refreshing, please wait...</p>
