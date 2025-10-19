@@ -2,9 +2,9 @@
 	const { data, title = '' } = $props();
 </script>
 
-{#if data.exhibits.length === 0}
+{#if data.exhibits.length === 0 || !data.exhibits}
 	<p>
-		No exhibits yet! {#if data.user.username === data.username}
+		No exhibits yet! {#if data.username && data.user.username === data.username}
 			<a href="/exhibits/new" class="underline">Create one?</a>
 		{/if}
 	</p>
