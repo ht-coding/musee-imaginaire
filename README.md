@@ -1,4 +1,5 @@
-<p align="center">[![Netlify Status](https://api.netlify.com/api/v1/badges/995873ec-f2ec-435c-8c66-cd476d5b9105/deploy-status)](https://app.netlify.com/projects/museeimaginaire/deploys)
+<p align="center">
+ <a href="https://app.netlify.com/projects/museeimaginaire/deploys"><img src="https://api.netlify.com/api/v1/badges/995873ec-f2ec-435c-8c66-cd476d5b9105/deploy-status" alt="Netlify Status"></a>
  <a href="https://nodejs.org/en"><img src="https://img.shields.io/badge/Node%20js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white" alt="Node"></a>
 <a href="https://svelte.dev/docs/kit/introduction"> <img src="https://img.shields.io/badge/SvelteKit-%23f1413d.svg?logo=svelte&logoColor=white" alt="sveltekit"></a>
 <a href="https://www.postgresql.org/"> <img src="https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white" alt="postgres"></a></p>
